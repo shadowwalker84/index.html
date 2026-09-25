@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incoming Call 😈</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+
+        background:
+            linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.45)),
+            url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80");
+
+        background-size: cover;
+        background-position: center;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .box {
+        width: 380px;
+        padding: 40px;
+        text-align: center;
+
+        background: rgba(0, 0, 0, 0.65);
+        color: white;
+
+        border-radius: 20px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.7);
+
+        backdrop-filter: blur(8px);
+    }
+
+    .phone {
+        font-size: 80px;
+        animation: ring 0.5s infinite alternate;
+    }
+
+    h1 {
+        font-size: 30px;
+        margin-bottom: 10px;
+    }
+
+    p {
+        font-size: 18px;
+    }
+
+    button {
+        border: none;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+    #start {
+        background: #22c55e;
+        color: white;
+    }
+
+    /* Tiny hidden STOP button */
+    #stop {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+
+        width: 35px;
+        height: 22px;
+
+        padding: 0;
+        margin: 0;
+
+        font-size: 8px;
+        opacity: 0.35;
+
+        background: #111;
+        color: white;
+
+        border-radius: 4px;
+    }
+
+    #stop:hover {
+        opacity: 1;
+    }
+
+    #status {
+        margin-top: 20px;
+        font-size: 16px;
+    }
+
+    @keyframes ring {
+        0% {
+            transform: rotate(-12deg);
+        }
+
+        100% {
+            transform: rotate(12deg);
+        }
+    }
+
+    .shake {
+        animation: shake 0.15s infinite;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0,0); }
+        25% { transform: translate(2px,-2px); }
+        50% { transform: translate(-2px,2px); }
+        75% { transform: translate(2px,2px); }
+        100% { transform: translate(0,0); }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box" id="box">
+
+    <div class="phone">📞</div>
+
+    <h1>Incoming Call...</h1>
+
+    <p id="status">
+        Someone is trying to reach you 👀
+    </p>
+
+    <button id="start" onclick="startRinging()">
+        📞 Answer Call
+    </button>
+
+</div>
+
+<!-- Tiny STOP button in top-right -->
+<button id="stop" onclick="stopRinging()">STOP</button>
+
+
+<script>
+
+let audioContext;
+let ringing = false;
+let ringTimer;
+
+
+/* Create one telephone-style ring */
+function makeRing() {
+
+    if (!audioContext) return;
+
+    const now = audioContext.currentTime;
+
+    // First tone
+    const osc1 = audioContext.createOscillator();
+    const gain1 = audioContext.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.value = 850;
+
+    gain1.gain.setValueAtTime(0.0001, now);
+    gain1.gain.exponentialRampToValueAtTime(0.10, now + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    osc1.connect(gain1);
+    gain1.connect(audioContext.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.45);
+
+
+    // Second tone
+    const osc2 = audioContext.createOscillator();
+    const gain2 = audioContext.createGain();
+
+    osc2.type = "sine";
+    osc2.frequency.value = 1050;
+
+    gain2.gain.setValueAtTime(0.0001, now);
+    gain2.gain.exponentialRampToValueAtTime(0.10, now + 0.02);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    osc2.connect(gain2);
+    gain2.connect(audioContext.destination);
+
+    osc2.start(now);
+    osc2.stop(now + 0.45);
+}
+
+
+/* Start continuous ringing */
+function startRinging() {
+
+    if (ringing) return;
+
+    ringing = true;
+
+    audioContext = new (window.AudioContext ||
+                        window.webkitAudioContext)();
+
+    audioContext.resume();
+
+    document.getElementById("status").innerText =
+        "📞 RIIIIING... RIIIIING... 😈";
+
+    document.getElementById("start").style.display = "none";
+
+    document.getElementById("box").classList.add("shake");
+
+    // Ring immediately
+    makeRing();
+
+    // Keep ringing continuously
+    ringTimer = setInterval(() => {
+
+        makeRing();
+
+    }, 1000);
+}
+
+
+/* Stop the prank */
+function stopRinging() {
+
+    ringing = false;
+
+    clearInterval(ringTimer);
+
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+
+    document.getElementById("box").classList.remove("shake");
+
+    document.getElementById("status").innerText =
+        "😂 Finally! You found the STOP button.";
+
+    document.getElementById("start").style.display =
+        "inline-block";
+}
+
+</script>
+
+</body>
+</html>
